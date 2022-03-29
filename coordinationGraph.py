@@ -69,6 +69,16 @@ class coordinationGraph:
         for connections in self.nodesAndConnections.values():
             connections.sort()
 
+        self.nNodes = noNodes
+        self.nActions = noActions
+    
+    def randomSolution(self, seed=None):
+        random.seed(seed)
+        solution = []
+        for _ in range(self.nNodes):
+            solution.append(random.randrange(self.nActions))
+        return solution
+
     def evaluateSolution(self, solution):
         """
         Evaluate a solution from scratch; by looping over all edges.
@@ -157,7 +167,17 @@ def multiStartLocalSearch4CoG(coordinationGraph, noIterations):
     :return: the best local optimum found and its reward
     """
     solution = None
-    reward = 0
+    reward = -float('inf')
+    for _ in range(noIterations):
+        newSolution = coordinationGraph.randomSolution()
+        newSolution = localSearch4CoG(coordinationGraph, newSolution)
+        newReward = coordinationGraph.evaluateSolution(newSolution)
+        if newReward > reward:
+            print("yes")
+            solution = newSolution
+            reward = newReward
+        else:
+            print("no")
     return solution, reward
 
 
@@ -188,9 +208,13 @@ for i in range(100):
     solution = localSearch4CoG(cog, solution)
     totalRuntime += time() - startTime
     teamRewards.append(cog.evaluateSolution(solution))
-print(f"Average localsearch runtime: {totalRuntime/100} seconds.")
+print(f"Average localsearch runtime: {totalRuntime/100} seconds. (highest reward: {max(teamRewards)})")
 plt.hist(teamRewards)
 plt.show()
+
+cog = coordinationGraph(nVars,1.5/nVars,nActs, i)
+solution, reward = multiStartLocalSearch4CoG(cog, 100)
+print(f"Multistart local search reward: {reward}")
 
 # print(cog.nodesAndConnections)
 # print(cog.edges)
