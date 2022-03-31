@@ -1,0 +1,31 @@
+Ik heb de volgende test gemaakt:
+
+best = (0, 0)
+cog2 = coordinationGraph(nVars,1.5/nVars,nActs, 116)
+for i in range(100):
+    solution2, reward2 = iteratedLocalSearch4CoG(cog2, i/100.0, 100)
+    if reward2 > best[0]:
+        best = (reward2, i/100.0)
+
+print(f"Iterated local search reward: {reward2}, for p: {best[1]}")
+
+Deze test elke pChange value 0.XX
+Hier pak ik dan de beste van.
+Deze test heb ik 10 keer uitgevoerd met de volgende resultaten:
+
+0: 0.06
+1: 0.03
+2: 0.02
+3: 0.07
+4: 0.03
+5: 0.04
+6: 0.06
+7: 0.06
+8: 0.02
+9: 0.07
+
+Hier heb ik vervolgens het gemiddelde van genomen voor een "beste" pChange value van 0.046 (om heel integer te zijn zou je dit nog op kunnen afronden naar 0.05)
+
+Voor het betere zou je dit uiteraard nog véél vaker uit willen voeren 
+en dan mogelijk ook het mediaan willen pakken inplaats van het gemiddelde, 
+maar ik heb niet echt de tijd om dit een paar honder duizend keer te laten runnen xd

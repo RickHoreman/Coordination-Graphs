@@ -90,7 +90,7 @@ class coordinationGraph:
         for i in range(len(solution)):
             for j in self.nodesAndConnections[i]:
                 if(j>i):
-                    print( "("+str(i)+","+str(j)+") -> "+str(self.edges[(i,j)].localReward(solution[i], solution[j])))
+                    #print( "("+str(i)+","+str(j)+") -> "+str(self.edges[(i,j)].localReward(solution[i], solution[j])))
                     result += self.edges[(i,j)].localReward(solution[i], solution[j])
         return result
 
@@ -160,7 +160,7 @@ def localSearch4CoG(coordinationGraph, initialSolution):
 
 def multiStartLocalSearch4CoG(coordinationGraph, noIterations):
     """
-    TODO: Implement multi-start local search
+    DONE: Implement multi-start local search
 
     :param coordinationGraph: the coordination graph to optimise for
     :param noIterations:  the number of times local search is run
@@ -168,22 +168,21 @@ def multiStartLocalSearch4CoG(coordinationGraph, noIterations):
     """
     solution = None
     reward = -float('inf')
+    bestPerIteration = []
     for _ in range(noIterations):
         newSolution = coordinationGraph.randomSolution()
         newSolution = localSearch4CoG(coordinationGraph, newSolution)
         newReward = coordinationGraph.evaluateSolution(newSolution)
         if newReward > reward:
-            print("yes")
             solution = newSolution
             reward = newReward
-        else:
-            print("no")
-    return solution, reward
+        bestPerIteration.append(reward)
+    return solution, reward, bestPerIteration
 
 
 def iteratedLocalSearch4CoG(coordinationGraph, pChange, noIterations):
     """
-    TODO: Implement iterated local search
+    DONE: Implement iterated local search
 
     :param coordinationGraph: the coordination graph to optimise for
     :param pChange: the perturbation strength, i.e., when mutating the solution, the probability for the value of a given
@@ -191,9 +190,21 @@ def iteratedLocalSearch4CoG(coordinationGraph, pChange, noIterations):
     :param noIterations:  the number of iterations
     :return: the best local optimum found and its reward
     """
-    solution = None
-    reward = 0
-    return solution, reward
+    solution = coordinationGraph.randomSolution()
+    reward = -float('inf')
+    bestPerIteration = []
+    for _ in range(noIterations):
+        a = copy.copy(solution)
+        for i in range(len(a)):
+            if random.uniform(0,1) < pChange:
+                a[i] = random.randrange(coordinationGraph.nActions)
+        a = localSearch4CoG(coordinationGraph, a)
+        newReward = coordinationGraph.evaluateSolution(a)
+        if newReward > reward:
+            solution = a
+            reward = newReward
+        bestPerIteration.append(reward)
+    return solution, reward, bestPerIteration
 
 ###TODO OPTIONAL: implement genetic local search.
 
@@ -208,16 +219,19 @@ for i in range(100):
     solution = localSearch4CoG(cog, solution)
     totalRuntime += time() - startTime
     teamRewards.append(cog.evaluateSolution(solution))
+
+cog = coordinationGraph(nVars,1.5/nVars,nActs, 116)
+solution, reward, bestPerIteration = multiStartLocalSearch4CoG(cog, 100)
+
+cog2 = coordinationGraph(nVars,1.5/nVars,nActs, 116)
+solution2, reward2, bestPerIteration2 = iteratedLocalSearch4CoG(cog2, 0.05, 100)
+
 print(f"Average localsearch runtime: {totalRuntime/100} seconds. (highest reward: {max(teamRewards)})")
+print(f"Multistart local search reward: {reward}")
+print(f"Iterated local search reward: {reward2}")
 plt.hist(teamRewards)
 plt.show()
-
-cog = coordinationGraph(nVars,1.5/nVars,nActs, i)
-solution, reward = multiStartLocalSearch4CoG(cog, 100)
-print(f"Multistart local search reward: {reward}")
-
-# print(cog.nodesAndConnections)
-# print(cog.edges)
-# print(cog.evaluateSolution(solution))
-# solution = localSearch4CoG(cog, solution)
-# print(cog.evaluateSolution(solution))
+plt.plot(range(len(bestPerIteration)), bestPerIteration, linewidth=1, color='blue', label='Multistart')
+plt.plot(range(len(bestPerIteration2)), bestPerIteration2, linewidth=1, color='orange', label='Iterated')
+plt.legend()
+plt.show()
